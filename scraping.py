@@ -39,7 +39,7 @@ print(tds[0].img['src']) #acessando a primeira aparição da tag td, acessando a
 for item in tds[1:13]:
     print(item.string)
 
-print(tds[14].div.descendants)
+print(tds[14].div.contents)
 
 # %%
 conteudo = {
