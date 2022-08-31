@@ -41,7 +41,7 @@ for item in tds[1:13]:
 
 print(tds[14].div.descendants)
 
-# %%
+# %%gggg
 conteudo = {
     "National Flag":tds[0].img['src'],
     "Area":tds[1].stripped_strings,
