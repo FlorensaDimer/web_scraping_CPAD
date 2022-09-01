@@ -5,7 +5,6 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-
 # %%
 url_download = """http://127.0.0.1:8000/places/default/sitemap.xml"""
 request = urllib.request.Request(url_download)
@@ -41,10 +40,7 @@ for i in range(1,len(paginas)):
     
     tds = soup.find_all(class_="w2p_fw") #find all faz uma lista
 
-
     urllib.request.urlretrieve("http://127.0.0.1:8000"+str(tds[0].img['src']), "img\img"+str(i)+".png")
-
-
 
     vizinhos=''
     for string in tds[14].strings:
