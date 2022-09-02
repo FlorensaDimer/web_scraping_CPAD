@@ -2,90 +2,80 @@
 import urllib.request
 import re
 from bs4 import BeautifulSoup
-import csv
 
-# %%
-url_download = """http://127.0.0.1:8000/places/default/sitemap.xml"""
-request = urllib.request.Request(url_download)
-
-request.add_header("User-agent", "cpa-dados")
-# %%
-response = urllib.request.urlopen(request)
-# %%
-response_encoding = response.headers.get_content_charset()
-
-response_content = response.read().decode('ascii')
-# %%
-paginas = re.findall("<loc>(\S+)</loc>", response_content)
-
-# %%
-url_download = paginas[31]
-request = urllib.request.Request(url_download)
+url = 'https://www.imdb.com/chart/top/'
+#Url dos 250
+request = urllib.request.Request(url)
+#Request para entrar no url
 
 request.add_header("User-agent", "cpa-dados")
+#Realizar o request com o usuario nomeado "cpa-dados"
 
 response = urllib.request.urlopen(request)
+#Abre a pagina do url
 
 response_encoding = response.headers.get_content_charset()
+#Pega conteudo da pagina
 
-html = response.read().decode('ascii')
+response_content = response.read().decode('utf-8')
+#Decodifica o conteudo
 
-# %%
-soup = BeautifulSoup(html, 'html.parser')
-# %%
-tds = soup.find_all(class_="w2p_fw") #find all faz uma lista
+soup = BeautifulSoup(response_content, 'html.parser')
+#Processo de analisar um texto para determinar sua estrutura lógica
 
-print(tds[0].img['src']) #acessando a primeira aparição da tag td, acessando a tag filha dele e pegando o conteúdo do atributo
+filmes = soup.find_all(class_="titleColumn")
+#Encontrao conteudo do "soup" usando parametros
+#Encontrou todos os links dos filmes, cria uma lista
 
-for item in tds[1:14]: 
-#Mostra todos as informações da pagina
-    print(item.string)
+for item in filmes:
+#Passa por todos os filmes e pega as partes a[href]
+    print(item.a['href'])
 
-# print(tds[14].div.contents)
+for i in range(1,5):
+#Entra no url de cada filme separado para coletar dados
 
+    url = "https://www.imdb.com"+str(item.a['href'])
+    #Url base("https://www.imdb.com") + caminho obtido pelo link (str(item.a['href']))
+    #Url dos 250
+    
+    request = urllib.request.Request(url)
+    #Request para entrar no url
 
-#============
-listaVizinhos = str(tds[14].div.contents).split(',')
-#Pega todo o content e separa cada </a>
+    request.add_header("User-agent", "cpa-dados")
+    #Realizar o request com o usuario nomeado "cpa-dados"
 
-print('separar')
-#Apenas para localizar-me
+    response = urllib.request.urlopen(request)
+    #Abre a pagina do url
 
-# print(listaVizinhos[-1])
+    response_encoding = response.headers.get_content_charset()
+    #Pega conteudo da pagina
 
+    response_content = response.read().decode('utf-8')
+    #Decodifica o conteudo
 
-for i in range(1,len(listaVizinhos)):
-#Pega apenas a sigla localizada no link
-    if i == 1:
-        neighbours = listaVizinhos[i][-7:-5]+','
-    elif i == (len(listaVizinhos)-1):
-        neighbours = neighbours+' '+listaVizinhos[i][-8:-6]
-        #Pega diferente devido ao caracter ] presente no ultimo da lista
-    else:
-        neighbours = neighbours+' '+listaVizinhos[i][-7:-5]+','
-        
-        
-print (neighbours)
-#============
+    soup = BeautifulSoup(response_content, 'html.parser')
+    #Processo de analisar um texto para determinar sua estrutura lógica
 
+    titulo = soup.find_all(class_="sc-b73cd867-0 fbOhB")
+    #Encontrao conteudo do "soup" usando parametros
+    
+    anoLancamento = soup.find_all(class_="ipc-inline-list__item")
+    #Encontrao conteudo do "soup" usando parametros
+    
+    urlPoster = soup.find_all(class_="ipc-lockup-overlay__screen")
+    #Encontrao conteudo do "soup" usando parametros
+    
+    imagemPoster = soup.find_all(class_="ipc-lockup-overlay__screen")
+    #Encontrao conteudo do "soup" usando parametros Conferir+++++++
+    
+    notaImdb = soup.find_all(class_="sc-7ab21ed2-1 jGRxWM")
+    #Encontrao conteudo do "soup" usando parametros
 
+    listaGeneros = soup.find_all(class_="ipc-inline-list__item")
+    #Encontrao conteudo do "soup" usando parametros
+    
+    listaDiretores = soup.find_all(class_="ipc-metadata-list-item__list-content-item ipc-metadata-list-item__list-content-item--link")
+    #Encontrao conteudo do "soup" usando parametros Conferir+++++++
+# tds = soup.find_all(class_="w2p_fw") #find all faz uma lista
 
-# %%
-conteudo = {
-    "National Flag":tds[0].img['src'],
-    "Area":tds[1].stripped_strings,
-    "Population":tds[1].stripped_strings,
-    "Iso":tds[3].stripped_strings,
-    "Country":tds[4].stripped_strings,
-    "Capital":tds[5].stripped_strings,
-    "Continent":tds[6].stripped_strings,
-    "TId":tds[7].stripped_strings,
-    "Currency Code:":tds[8].stripped_strings,
-    "Currency Name":tds[9].stripped_strings,
-    "Phone":tds[10].stripped_strings,
-    "Postal Code Format":tds[11].stripped_strings,
-    "Postal Code Regex":tds[12].stripped_strings,
-    "Neighbours": neighbours
-
-}
 # %%
