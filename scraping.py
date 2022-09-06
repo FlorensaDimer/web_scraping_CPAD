@@ -2,6 +2,171 @@ import urllib.request
 import re
 from bs4 import BeautifulSoup
 import json
+import csv
+from datetime import datetime
+
+# %%
+
+#=====================================================
+#Tarefa 1
+#=====================================================
+
+url_download = "http://127.0.0.1:8000/places/default/sitemap.xml"
+request = urllib.request.Request(url_download)
+
+request.add_header("User-agent", "cpa-dados")
+
+response = urllib.request.urlopen(request)
+
+response_encoding = response.headers.get_content_charset()
+
+response_content = response.read().decode('ascii')
+
+paginas = re.findall("<loc>(.+w\/)", response_content)
+
+
+with open ('Tarefa_1.csv', 'a') as arq:
+
+    colunas = [
+                'National Flag',
+                'Area',
+                'Population',
+                'Iso',
+                'Country',
+                'Capital',
+                'Continent',
+                'TId',
+                'Currency Code',
+                'Currency Name',
+                'Phone',
+                'Postal Code Format',
+                'Postal Code Regex',
+                'Languages',
+                'Neighbours',
+                'Timestamp'
+                ]
+
+    for i in range(1,len(paginas)):
+
+        url_download = paginas[i]+str(i)
+        request = urllib.request.Request(url_download)
+
+        dt = datetime.now()
+        ts = datetime.timestamp(dt)
+
+        request.add_header("User-agent", "cpa-dados")
+
+        response = urllib.request.urlopen(request)
+
+        response_encoding = response.headers.get_content_charset()
+
+        html = response.read().decode('ascii')
+
+        soup = BeautifulSoup(html, 'html.parser')
+        
+        tds = soup.find_all(class_="w2p_fw") #find all faz uma lista
+
+        urllib.request.urlretrieve("http://127.0.0.1:8000"+str(tds[0].img['src']), "Tarefa_1_imagens\img"+str(i)+".png")
+
+        vizinhos=''
+        for string in tds[14].strings:
+            vizinhos = vizinhos + string
+
+        dados = {   
+                "National Flag":    tds[0].img['src'],
+                "Area":             tds[1].string,
+                "Population":       tds[2].string,
+                "Iso":              tds[3].string,
+                "Country":          tds[4].string,
+                "Capital":          tds[5].string,
+                "Continent":        tds[6].string,
+                "TId":              tds[7].string,
+                "Currency Code":    tds[8].string,
+                "Currency Name":    tds[9].string,
+                "Phone":            tds[10].string,
+                "Postal Code Format":tds[11].string,
+                "Postal Code Regex":tds[12].string,
+                "Languages":        tds[13].string,
+                "Neighbours":       vizinhos,
+                "Timestamp":        ts
+                }
+
+        writer = csv.DictWriter(arq, fieldnames=colunas)
+        if i==1:
+            writer.writeheader()
+        writer.writerow(dados)
+        
+#=====================================================      
+##Parte 3
+#=====================================================
+
+
+with open ('Tarefa_1.csv', 'a') as arq:
+    url_download = "http://127.0.0.1:8000/places/default/sitemap.xml"
+request = urllib.request.Request(url_download)
+
+request.add_header("User-agent", "cpa-dados")
+
+response = urllib.request.urlopen(request)
+
+response_encoding = response.headers.get_content_charset()
+
+response_content = response.read().decode('ascii')
+
+paginas = re.findall("<loc>(.+w\/)", response_content)
+
+lista = arq.readlines()
+#Lista se refere ao conteudo de todas as linhas, cada linha uma lista
+    
+for i in range(1,len(paginas)):
+#Pagina(i), Linha(l)   
+#i ja serve tambem para index() da lista, ja que verificaremos pagina e linha iguais  
+    url_download = paginas[i]+str(i)
+    request = urllib.request.Request(url_download)
+
+    dt = datetime.now()
+    ts = datetime.timestamp(dt)
+
+    request.add_header("User-agent", "cpa-dados")
+
+    response = urllib.request.urlopen(request)
+
+    response_encoding = response.headers.get_content_charset()
+
+    html = response.read().decode('ascii')
+
+    soup = BeautifulSoup(html, 'html.parser')
+    
+    tds = soup.find_all(class_="w2p_fw") #find all faz uma lista
+
+    urllib.request.urlretrieve("http://127.0.0.1:8000"+str(tds[0].img['src']), "Tarefa_1_imagens\img"+str(i)+".png")
+
+    vizinhos=''
+    for string in tds[14].strings:
+        vizinhos = vizinhos + string
+
+
+    for j in range (0, len(lista),2):
+        subLista = lista[i].split(',')
+        #SubLista é os elementos de uma linha(lista[index]), separados por split
+        for s in range (0, (len(subLista)-1)):
+        #SubLista(s)
+            if float(subLista[s]) != tds[s].string:
+                if s==0:
+                    subLista[s] = tds[s].string
+                    dt = datetime.now()
+                    ts = datetime.timestamp(dt)
+                    subLista[:-1] = ts
+                    #Sobrescreve o valor da liha (lista[index]) com valores novos, atraves da manipulação de subLista
+    
+    with open ('Tarefa_1.csv', 'w') as arq:          
+        writer.writerows(lista)
+        
+# %%  
+
+#=====================================================
+##Tarefa 2    
+#=====================================================
 
 
 url = 'https://www.imdb.com/chart/top/'
@@ -31,7 +196,7 @@ filmes = soup.find_all(class_="titleColumn")
 
 posters = soup.find_all(class_="posterColumn") 
 
-arq_open = open("Coleta.json", "w")
+arq_open = open("Tarefa_2.json", "w")
 
 for i in range(0, len(filmes)):
     #Entra no url de cada filme separado para coletar dados
@@ -73,7 +238,7 @@ for i in range(0, len(filmes)):
     # print("urlPoster")
     # print(urlPoster["href"])
 
-    urllib.request.urlretrieve(str(posters[i].a.img['src'].rpartition('._')[0]+str('.jpg')), 'imagens/img'+str(i)+'.jpg')
+    urllib.request.urlretrieve(str(posters[i].a.img['src'].rpartition('._')[0]+str('.jpg')), 'Tarefa_2_imagens/img'+str(i)+'.jpg')
 
     notaImdb = soup.find(class_="sc-7ab21ed2-1 jGRxWM")
     #Encontrao conteudo do "soup" usando parametros
@@ -110,7 +275,6 @@ for i in range(0, len(filmes)):
                 "titulo": titulo[0].string,
                 "Ano de Lancamento":    anoLancamento.string,
                 "Url do Poster":        str(posters[i].a.img['src'].rpartition('._')[0]+str('.jpg')),
-                # "Imagem do Poster":     imagemPoster.string,
                 "Nota: Imdb":           notaImdb.string,
                 "Lista de Generos":     Generos,
                 "Lista de Diretores":   Diretores
