@@ -101,31 +101,11 @@ with open ('Tarefa_1.csv', 'a') as arq:
 #=====================================================
 
 
-with open ('Tarefa_1.csv', 'a') as arq:
-    url_download = "http://127.0.0.1:8000/places/default/sitemap.xml"
-request = urllib.request.Request(url_download)
-
-request.add_header("User-agent", "cpa-dados")
-
-response = urllib.request.urlopen(request)
-
-response_encoding = response.headers.get_content_charset()
-
-response_content = response.read().decode('ascii')
-
-paginas = re.findall("<loc>(.+w\/)", response_content)
-
-lista = arq.readlines()
-#Lista se refere ao conteudo de todas as linhas, cada linha uma lista
+with open ('Tarefa_1.csv', 'r') as arq:
+    #Abre o arquivo em leitura
     
-for i in range(1,len(paginas)):
-#Pagina(i), Linha(l)   
-#i ja serve tambem para index() da lista, ja que verificaremos pagina e linha iguais  
-    url_download = paginas[i]+str(i)
+    url_download = "http://127.0.0.1:8000/places/default/sitemap.xml"
     request = urllib.request.Request(url_download)
-
-    dt = datetime.now()
-    ts = datetime.timestamp(dt)
 
     request.add_header("User-agent", "cpa-dados")
 
@@ -133,34 +113,58 @@ for i in range(1,len(paginas)):
 
     response_encoding = response.headers.get_content_charset()
 
-    html = response.read().decode('ascii')
+    response_content = response.read().decode('ascii')
 
-    soup = BeautifulSoup(html, 'html.parser')
+    paginas = re.findall("<loc>(.+w\/)", response_content)
+
+    lista = arq.readlines()
+    #Lista se refere ao conteudo de todas as linhas, cada linha uma lista
     
-    tds = soup.find_all(class_="w2p_fw") #find all faz uma lista
+    for i in range(1,len(paginas)):
+    #Pagina(i), Linha(l)   
+    #i ja serve tambem para index() da lista, ja que verificaremos pagina e linha iguais  
+        url_download = paginas[i]+str(i)
+        request = urllib.request.Request(url_download)
 
-    urllib.request.urlretrieve("http://127.0.0.1:8000"+str(tds[0].img['src']), "Tarefa_1_imagens\img"+str(i)+".png")
+        request.add_header("User-agent", "cpa-dados")
 
-    vizinhos=''
-    for string in tds[14].strings:
-        vizinhos = vizinhos + string
+        response = urllib.request.urlopen(request)
+
+        response_encoding = response.headers.get_content_charset()
+
+        html = response.read().decode('ascii')
+
+        soup = BeautifulSoup(html, 'html.parser')
+        
+        tds = soup.find_all(class_="w2p_fw") #find all faz uma lista
+
+        urllib.request.urlretrieve("http://127.0.0.1:8000"+str(tds[0].img['src']), "Tarefa_1_imagens\img"+str(i)+".png")
+
+        vizinhos=''
+        for string in tds[14].strings:
+            vizinhos = vizinhos + string
 
 
-    for j in range (0, len(lista),2):
-        subLista = lista[i].split(',')
-        #SubLista é os elementos de uma linha(lista[index]), separados por split
-        for s in range (0, (len(subLista)-1)):
-        #SubLista(s)
-            if float(subLista[s]) != tds[s].string:
-                if s==0:
+        for j in range (0, len(lista),2):
+            subLista = lista[j].split(',')
+            #SubLista é os elementos de uma linha(lista[index]), separados por split
+            
+            for s in range (0, len(subLista)):
+            #SubLista(s)
+                if float(subLista[s]) != tds[s].string:
+                    
                     subLista[s] = tds[s].string
                     dt = datetime.now()
                     ts = datetime.timestamp(dt)
-                    subLista[:-1] = ts
+                    subLista[15] = ts
+                    #Trocar timestamp
+                    lista[j] =  f"""{subLista[0]},{subLista[1]},{subLista[2]},{subLista[3]},{subLista[4]},{subLista[5]},
+                                    {subLista[6]},{subLista[7]},{subLista[8]},{subLista[9]},{subLista[10]},{subLista[11]},
+                                    {subLista[12]},{subLista[13]},{subLista[14]},{subLista[15]}\n"""
                     #Sobrescreve o valor da liha (lista[index]) com valores novos, atraves da manipulação de subLista
     
-    with open ('Tarefa_1.csv', 'w') as arq:          
-        writer.writerows(lista)
+with open ('Tarefa_1.csv', 'w') as arq:          
+    writer.writerows(lista)
         
 # %%  
 
